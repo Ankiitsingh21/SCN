@@ -17,6 +17,7 @@ export interface User {
   avatarUrl?: string;
   company?: string;
   designation?: string;
+  hasProfile?: boolean;
 }
 
 export interface Job {

@@ -89,6 +89,7 @@ export default function CreateJobPage() {
     handleSubmit,
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -145,7 +146,23 @@ export default function CreateJobPage() {
     });
   };
 
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+  const nextStep = async () => {
+    let fieldsToValidate: any[] = [];
+    if (currentStep === 1) fieldsToValidate = ['title', 'headcountRequired'];
+    if (currentStep === 2) fieldsToValidate = ['industryId', 'locationId'];
+    if (currentStep === 4) fieldsToValidate = ['wageMin', 'wageMax'];
+    if (currentStep === 5) fieldsToValidate = ['description', 'responsibilities', 'requirements'];
+
+    if (fieldsToValidate.length > 0) {
+      const isValid = await trigger(fieldsToValidate as any);
+      if (!isValid) {
+        toast.error('Please fill all required fields correctly before proceeding.');
+        return;
+      }
+    }
+    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+  };
+
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardSidebar } from '@/components/dashboard-sidebar';
 import { DashboardTopbar } from '@/components/dashboard-topbar';
@@ -18,6 +18,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children, items, role, title }: DashboardLayoutProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
@@ -40,9 +41,23 @@ export function DashboardLayout({ children, items, role, title }: DashboardLayou
 
   return (
     <div className="flex min-h-screen bg-background">
-      <DashboardSidebar items={items} role={role} />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <DashboardTopbar items={items} role={role} title={title} />
+      <DashboardSidebar items={items} role={role} isOpen={sidebarOpen} />
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/20 lg:hidden" 
+          onClick={() => setSidebarOpen(false)} 
+        />
+      )}
+      <div 
+        className="flex flex-1 flex-col overflow-hidden" 
+        onClick={() => {
+          if (sidebarOpen) setSidebarOpen(false);
+        }}
+      >
+        <DashboardTopbar items={items} role={role} title={title} onToggleSidebar={(e) => {
+          e?.stopPropagation();
+          setSidebarOpen(!sidebarOpen);
+        }} />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>

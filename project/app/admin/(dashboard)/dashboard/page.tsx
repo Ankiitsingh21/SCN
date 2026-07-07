@@ -8,11 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatCard } from '@/components/stat-card';
 import { PageHeader } from '@/components/page-header';
-import { adminApi } from '@/lib/scn-api';
+import { adminApi, jobsApi, workerApi, WorkerWithMeta, JobWithMeta } from '@/lib/scn-api';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getInitials } from '@/lib/format';
 
 export default function AdminDashboardPage() {
   const statsQuery = useQuery({ queryKey: ['admin-stats'], queryFn: adminApi.stats });
+  const workersQuery = useQuery({ queryKey: ['admin-workers'], queryFn: () => workerApi.search({ completeOnly: false }) });
+  const jobsQuery = useQuery({ queryKey: ['admin-jobs'], queryFn: jobsApi.list });
+  
   const stats = statsQuery.data;
+  const recentWorkers = workersQuery.data?.slice(0, 5) || [];
+  const recentJobs = jobsQuery.data?.slice(0, 5) || [];
+
   const masterDataStats = [
     { label: 'Industries', value: stats?.industries || 0, icon: Building2, href: '/admin/master-data', color: 'text-primary' },
     { label: 'Locations', value: stats?.locations || 0, icon: MapPin, href: '/admin/master-data', color: 'text-accent' },
@@ -33,6 +41,61 @@ export default function AdminDashboardPage() {
         <StatCard label="Total Workers" value={(stats?.totalWorkers || 0).toLocaleString()} icon={Users} color="accent" delay={0.05} />
         <StatCard label="Total Jobs" value={(stats?.totalJobs || 0).toLocaleString()} icon={Briefcase} color="warning" delay={0.1} />
         <StatCard label="Total Applications" value={(stats?.totalApplications || 0).toLocaleString()} icon={FileText} color="success" delay={0.15} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-semibold">Recent Workers</h3>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/admin/workers">View all<ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+            </Button>
+          </div>
+          <div className="space-y-4">
+            {recentWorkers.map((w: WorkerWithMeta) => (
+              <div key={w.id} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={w.avatarUrl} alt={w.fullName} />
+                    <AvatarFallback>{getInitials(w.fullName)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-sm">{w.fullName}</p>
+                    <p className="text-xs text-muted-foreground">{w.email}</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className={w.profileCompletion === 100 ? "border-success/20 bg-success/5 text-success" : ""}>
+                  {w.profileCompletion}% Profile
+                </Badge>
+              </div>
+            ))}
+            {recentWorkers.length === 0 && <p className="text-sm text-muted-foreground">No workers found.</p>}
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-semibold">Recent Jobs</h3>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/admin/jobs">View all<ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+            </Button>
+          </div>
+          <div className="space-y-4">
+            {recentJobs.map((j: JobWithMeta) => (
+              <div key={j.id} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                <div>
+                  <Link href={`/jobs/${j.id}`} className="font-medium text-sm transition-colors hover:text-primary">{j.title}</Link>
+                  <p className="text-xs text-muted-foreground">{j.companyName}</p>
+                </div>
+                <div className="text-right">
+                  <Badge variant="outline">{j.openings} roles</Badge>
+                  <p className="mt-1 text-xs text-muted-foreground">{j.applicationsCount} applied</p>
+                </div>
+              </div>
+            ))}
+            {recentJobs.length === 0 && <p className="text-sm text-muted-foreground">No jobs listed.</p>}
+          </div>
+        </Card>
       </div>
 
       <Card className="p-6">

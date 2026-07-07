@@ -31,7 +31,7 @@ export function AuthLayout({
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
               <Briefcase className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold tracking-tight">Hireflow</span>
+            <span className="text-xl font-bold tracking-tight">SCN Jobs</span>
           </Link>
           <ThemeToggle />
         </div>
@@ -65,7 +65,7 @@ export function AuthLayout({
               Your next career move starts here
             </h2>
             <p className="mt-4 text-lg text-primary-foreground/80">
-              Join thousands of professionals who found their dream jobs through Hireflow.
+              Join thousands of professionals who found their dream jobs through SCN Jobs.
             </p>
             <div className="mt-12 space-y-4">
               {[

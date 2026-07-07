@@ -104,7 +104,7 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mx-auto mt-10 max-w-4xl"
           >
-            <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-card sm:flex-row sm:items-center">
+            <div className="flex w-full flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-card md:flex-row md:items-center">
               <div className="flex flex-1 items-center gap-2 px-2">
                 <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
                 <Input
@@ -115,7 +115,7 @@ export default function LandingPage() {
                   className="border-0 bg-transparent px-0 focus-visible:ring-0"
                 />
               </div>
-              <div className="hidden h-8 w-px bg-border sm:block" />
+              <div className="hidden h-8 w-px bg-border md:block" />
               <div className="flex flex-1 items-center gap-2 px-2">
                 <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" />
                 <Input
@@ -126,8 +126,8 @@ export default function LandingPage() {
                   className="border-0 bg-transparent px-0 focus-visible:ring-0"
                 />
               </div>
-              <Button size="lg" className="sm:px-8" asChild>
-                <Link href="/jobs">
+              <Button size="lg" className="w-full md:w-auto md:px-8" asChild>
+                <Link href={`/jobs?q=${encodeURIComponent(searchKeyword)}&loc=${encodeURIComponent(searchLocation)}`}>
                   Search Jobs
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -264,7 +264,7 @@ export default function LandingPage() {
       <section id="how-it-works" className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-10 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">How It Works</h2>
+            <h2 className="text-3xl font-bold tracking-tight">SCN Jobs How It Works</h2>
             <p className="mt-2 text-muted-foreground">
               Get hired in four simple steps
             </p>
@@ -355,7 +355,7 @@ export default function LandingPage() {
           <div className="flex flex-col items-center justify-between gap-8 rounded-3xl border border-border bg-card p-8 lg:flex-row lg:p-12">
             <div className="max-w-xl">
               <h2 className="text-3xl font-bold tracking-tight">
-                Take Hireflow with you
+                Take SCN Jobs with you
               </h2>
               <p className="mt-3 text-muted-foreground">
                 Get instant job alerts, track applications, and never miss an opportunity. Download our mobile app today.
@@ -384,7 +384,7 @@ export default function LandingPage() {
           <div className="mb-10 text-center">
             <h2 className="text-3xl font-bold tracking-tight">Frequently Asked Questions</h2>
             <p className="mt-2 text-muted-foreground">
-              Everything you need to know about Hireflow
+              Everything you need to know about SCN Jobs
             </p>
           </div>
           <Accordion type="single" collapsible className="space-y-3">
@@ -417,7 +417,7 @@ export default function LandingPage() {
               Ready to find your next opportunity?
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-primary-foreground/80">
-              Join millions of workers and recruiters on Hireflow. It&apos;s free to get started.
+              Join millions of workers and recruiters on SCN Jobs. It's free to get started.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button size="lg" variant="secondary" asChild>

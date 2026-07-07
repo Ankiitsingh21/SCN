@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Bell, Search, LogOut, User, Settings } from 'lucide-react';
+import { Menu, X, Bell, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { DashboardSidebar, NavItem } from '@/components/dashboard-sidebar';
+import { NavItem } from '@/components/dashboard-sidebar';
 import { useAuth } from '@/lib/auth-context';
 import { getInitials } from '@/lib/format';
 
@@ -24,15 +24,16 @@ interface DashboardTopbarProps {
   items: NavItem[];
   role: 'worker' | 'recruiter' | 'admin';
   title: string;
+  onToggleSidebar?: (e?: React.MouseEvent) => void;
 }
 
-export function DashboardTopbar({ items, role, title }: DashboardTopbarProps) {
+export function DashboardTopbar({ items, role, title, onToggleSidebar }: DashboardTopbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const unreadCount = 0;
 
-  const profileRoute = role === 'worker' ? '/worker/profile' : `/${role}/dashboard`;
+  const profileRoute = role === 'worker' ? '/worker/profile' : role === 'recruiter' ? '/recruiter/dashboard' : null;
 
   return (
     <>
@@ -46,18 +47,18 @@ export function DashboardTopbar({ items, role, title }: DashboardTopbarProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden lg:flex"
+            onClick={onToggleSidebar}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
           <h1 className="text-lg font-semibold">{title}</h1>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden items-center rounded-lg border border-border bg-background px-3 py-1.5 md:flex">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="ml-2 w-40 bg-transparent text-sm outline-none placeholder:text-muted-foreground lg:w-56"
-            />
-          </div>
           <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -100,17 +101,15 @@ export function DashboardTopbar({ items, role, title }: DashboardTopbarProps) {
                 <p className="text-xs font-normal text-muted-foreground">{user?.email}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={profileRoute}>
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {profileRoute && (
+                <DropdownMenuItem asChild>
+                  <Link href={profileRoute}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {profileRoute && <DropdownMenuSeparator />}
               <DropdownMenuItem onClick={logout} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
@@ -128,7 +127,7 @@ export function DashboardTopbar({ items, role, title }: DashboardTopbarProps) {
           />
           <div className="absolute left-0 top-0 h-full w-72 bg-card shadow-xl">
             <div className="flex h-16 items-center justify-between border-b border-border px-5">
-              <span className="text-lg font-bold">Hireflow</span>
+              <span className="text-lg font-bold">SCN Jobs</span>
               <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)}>
                 <X className="h-5 w-5" />
               </Button>

@@ -1,4 +1,5 @@
 import './globals.css';
+import '@uploadthing/react/styles.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -9,7 +10,7 @@ import { Toaster } from '@/components/ui/sonner';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Hireflow — Find Your Next Opportunity',
+  title: 'SCN Jobs — Find Your Next Opportunity',
   description:
     'The modern job portal connecting workers and recruiters. Discover jobs, track applications, and hire faster.',
 };

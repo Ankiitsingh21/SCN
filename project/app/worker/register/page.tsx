@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
@@ -32,8 +32,16 @@ export default function WorkerRegisterPage() {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
+    control,
     formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { agree: false },
+  });
+
+  const agreeValue = watch('agree');
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
@@ -60,7 +68,7 @@ export default function WorkerRegisterPage() {
   return (
     <AuthLayout
       title="Create your account"
-      subtitle="Join Hireflow and start your journey toward your next opportunity."
+      subtitle="Join SCN Jobs and start your journey toward your next opportunity."
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
@@ -130,7 +138,17 @@ export default function WorkerRegisterPage() {
         </div>
 
         <div className="flex items-start gap-2">
-          <Checkbox id="agree" {...register('agree')} />
+          <Controller
+            control={control}
+            name="agree"
+            render={({ field }) => (
+              <Checkbox
+                id="agree"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            )}
+          />
           <Label htmlFor="agree" className="text-sm font-normal text-muted-foreground">
             I agree to the{' '}
             <a href="#" className="font-medium text-primary hover:underline">

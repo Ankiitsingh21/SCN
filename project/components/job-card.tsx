@@ -20,7 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
 interface JobCardProps {
-  job: Job;
+  job: Job & { hasApplied?: boolean };
   variant?: 'default' | 'compact';
   className?: string;
 }
@@ -123,9 +123,13 @@ export function JobCard({ job, variant = 'default', className }: JobCardProps) {
             </Badge>
           )}
         </div>
-        <Button size="sm" asChild>
-          <Link href={`/jobs/${job.id}`}>Apply Now</Link>
-        </Button>
+        {job.hasApplied ? (
+          <Button size="sm" variant="secondary" disabled>Applied</Button>
+        ) : (
+          <Button size="sm" asChild>
+            <Link href={`/jobs/${job.id}`}>Apply Now</Link>
+          </Button>
+        )}
       </div>
     </motion.div>
   );

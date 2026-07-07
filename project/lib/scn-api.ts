@@ -260,6 +260,7 @@ export function toUser(user: BackendUser): User {
     avatarUrl: user.workerProfile?.profilePhotoUrl || undefined,
     company: user.recruiter?.name,
     designation: user.role === 'super_admin' ? 'Administrator' : undefined,
+    hasProfile: !!user.workerProfile && !!user.workerProfile.name,
   };
 }
 
@@ -620,6 +621,12 @@ export const workerApi = {
       }),
     );
   },
+  addEducation(data: { qualificationId: number; institute: string; passoutYear: number; score?: number }) {
+    return apiPost('/worker/profile/education', data);
+  },
+  addExperience(data: { companyName: string; jobTitle: string; fromDate: string; toDate?: string; isCurrent?: boolean; description?: string }) {
+    return apiPost('/worker/profile/experience', data);
+  },
   async search(params?: { q?: string; skillId?: number; city?: string; completeOnly?: boolean }) {
     const workers = await apiGet<BackendWorkerProfile[]>('/worker/search', { params });
     return workers.map(toWorkerProfile);
@@ -682,6 +689,9 @@ export const adminApi = {
   async setRecruiterStatus(id: string, active: boolean) {
     const endpoint = active ? 'reactivate' : 'deactivate';
     return toRecruiter(await apiPatch<BackendRecruiter>(`/admin/recruiters/${id}/${endpoint}`));
+  },
+  async updateRecruiter(id: string, data: { name?: string; email?: string; companyName?: string; phone?: string }) {
+    return toRecruiter(await apiPatch<BackendRecruiter>(`/admin/recruiters/${id}`, data));
   },
 };
 

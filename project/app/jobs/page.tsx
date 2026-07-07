@@ -1,5 +1,7 @@
 'use client';
 
+import { Suspense } from 'react';
+
 import { PublicNavbar } from '@/components/public-navbar';
 import { PublicFooter } from '@/components/public-footer';
 import { JobSearchView } from '@/components/job-search-view';
@@ -15,7 +17,9 @@ export default function JobSearchPage() {
             Browse live openings from SCN Jobs recruiters.
           </p>
         </div>
-        <JobSearchView />
+        <Suspense fallback={<div>Loading jobs...</div>}>
+          <JobSearchView />
+        </Suspense>
       </main>
       <PublicFooter />
     </div>

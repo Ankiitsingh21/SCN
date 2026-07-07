@@ -31,6 +31,7 @@ import { JobWithMeta, applicationsApi, jobsApi } from '@/lib/scn-api';
 import { formatSalary, timeAgo } from '@/lib/format';
 import { getApiErrorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+import { Application } from '@/lib/types';
 
 export default function JobDetailsPage() {
   const params = useParams();
@@ -53,6 +54,16 @@ export default function JobDetailsPage() {
   });
   const jobs = useMemo<JobWithMeta[]>(() => jobsQuery.data ?? [], [jobsQuery.data]);
 
+  // Check if current worker has already applied
+  const applicationsQuery = useQuery({
+    queryKey: ['worker-applications'],
+    queryFn: applicationsApi.workerList,
+    enabled: isAuthenticated && user?.role === 'worker',
+  });
+  const workerApplications: Application[] = applicationsQuery.data ?? [];
+  const hasApplied = workerApplications.some((app) => app.jobId === id);
+  const existingApplication = workerApplications.find((app) => app.jobId === id);
+
   const relatedJobs = useMemo(
     () => jobs.filter((item) => item.id !== id).slice(0, 3),
     [id, jobs],
@@ -74,6 +85,10 @@ export default function JobDetailsPage() {
     }
     if (user?.role !== 'worker') {
       toast.error('Only worker accounts can apply to jobs');
+      return;
+    }
+    if (hasApplied) {
+      toast.info('You have already applied to this job');
       return;
     }
     applyMutation.mutate();
@@ -230,16 +245,41 @@ export default function JobDetailsPage() {
 
           <div className="space-y-4">
             <Card className="sticky top-24 p-6">
-              <h3 className="font-semibold">Apply for this job</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Quick apply with your worker profile.</p>
-              <Button
-                className="mt-4 w-full"
-                size="lg"
-                onClick={handleApply}
-                disabled={applyMutation.isPending}
-              >
-                {applyMutation.isPending ? 'Submitting...' : 'Apply Now'}
-              </Button>
+              {hasApplied ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-success" />
+                    <h3 className="font-semibold text-success">Application Submitted</h3>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    You have already applied to this job. Status: <span className="font-medium capitalize">{existingApplication?.status?.replace('_', ' ')}</span>
+                  </p>
+                  <Button variant="outline" className="mt-4 w-full" asChild>
+                    <Link href="/worker/applications">View My Applications</Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-semibold">Apply for this job</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {isAuthenticated && user?.role === 'worker'
+                      ? 'Quick apply with your worker profile.'
+                      : 'Sign in as a worker to apply.'}
+                  </p>
+                  <Button
+                    className="mt-4 w-full"
+                    size="lg"
+                    onClick={handleApply}
+                    disabled={applyMutation.isPending}
+                  >
+                    {applyMutation.isPending
+                      ? 'Submitting...'
+                      : !isAuthenticated
+                      ? 'Sign In to Apply'
+                      : 'Apply Now'}
+                  </Button>
+                </>
+              )}
               <Button variant="outline" className="mt-2 w-full" onClick={() => setSaved((value) => !value)}>
                 <Bookmark className={`mr-2 h-4 w-4 ${saved ? 'fill-primary text-primary' : ''}`} />
                 {saved ? 'Saved' : 'Save Job'}

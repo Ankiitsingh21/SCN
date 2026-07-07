@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Search, MapPin, Filter, SlidersHorizontal, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { JobCard } from '@/components/job-card';
 import { JobListSkeleton } from '@/components/skeletons';
 import { EmptyState } from '@/components/empty-state';
-import { JobWithMeta, jobsApi } from '@/lib/scn-api';
+import { JobWithMeta, jobsApi, applicationsApi } from '@/lib/scn-api';
+import { Application } from '@/lib/types';
+import { useAuth } from '@/lib/auth-context';
 
 const sortOptions = [
   { value: 'relevance', label: 'Most Relevant' },
@@ -23,8 +26,9 @@ const sortOptions = [
 ];
 
 export function JobSearchView() {
-  const [keyword, setKeyword] = useState('');
-  const [location, setLocation] = useState('');
+  const searchParams = useSearchParams();
+  const [keyword, setKeyword] = useState(searchParams.get('q') || '');
+  const [location, setLocation] = useState(searchParams.get('loc') || '');
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
   const [freshers, setFreshers] = useState(false);
@@ -36,6 +40,19 @@ export function JobSearchView() {
     queryKey: ['jobs'],
     queryFn: jobsApi.list,
   });
+  
+  const { user } = useAuth();
+  const applicationsQuery = useQuery({
+    queryKey: ['worker-applications'],
+    queryFn: applicationsApi.workerList,
+    enabled: user?.role === 'worker',
+  });
+  
+  const appliedJobIds = useMemo(() => {
+    if (!applicationsQuery.data) return new Set<string>();
+    return new Set(applicationsQuery.data.map((app: Application) => app.jobId));
+  }, [applicationsQuery.data]);
+
   const jobs = useMemo<JobWithMeta[]>(() => jobsQuery.data ?? [], [jobsQuery.data]);
   const { isLoading, refetch } = jobsQuery;
 
@@ -191,22 +208,11 @@ export function JobSearchView() {
       </div>
 
       <div className="flex gap-6">
-        <aside className="hidden w-64 shrink-0 lg:block">
-          <div className="sticky top-24 rounded-xl border border-border bg-card p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <SlidersHorizontal className="h-4 w-4" />
-              <span className="font-semibold">Filters</span>
-              {activeFilterCount > 0 && <Badge variant="secondary">{activeFilterCount}</Badge>}
-            </div>
-            <FilterContent />
-          </div>
-        </aside>
-
         <div className="flex-1">
           <div className="mb-4 flex items-center justify-between gap-3">
             <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="lg:hidden">
+                <Button variant="outline" size="sm">
                   <Filter className="mr-2 h-4 w-4" />
                   Filters
                   {activeFilterCount > 0 && <Badge variant="secondary" className="ml-2">{activeFilterCount}</Badge>}
@@ -216,7 +222,12 @@ export function JobSearchView() {
                 <SheetHeader>
                   <SheetTitle>Filters</SheetTitle>
                 </SheetHeader>
-                <div className="mt-6"><FilterContent /></div>
+                <div className="mt-6">
+                  <FilterContent />
+                  <Button className="mt-6 w-full" onClick={() => setShowMobileFilters(false)}>
+                    Apply Filters
+                  </Button>
+                </div>
               </SheetContent>
             </Sheet>
             <div className="flex items-center gap-2">
@@ -248,7 +259,7 @@ export function JobSearchView() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filteredJobs.map((job) => (
-                <JobCard key={job.id} job={job} />
+                <JobCard key={job.id} job={{ ...job, hasApplied: appliedJobIds.has(job.id) }} />
               ))}
             </div>
           )}

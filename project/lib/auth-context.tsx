@@ -12,6 +12,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<User>;
   setSession: (authToken: string, authUser: User, redirect?: boolean) => void;
   logout: () => void;
+  updateUser: (user: Partial<User>) => void;
   isAuthenticated: boolean;
 }
 
@@ -59,7 +60,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(authToken);
     setUser(authUser);
 
-    if (redirect) router.push(dashboardRoutes[authUser.role]);
+    if (redirect) {
+      if (authUser.role === 'worker' && !authUser.hasProfile) {
+        router.push('/worker/onboarding');
+      } else {
+        router.push(dashboardRoutes[authUser.role]);
+      }
+    }
   };
 
   const login = async (email: string, password: string) => {
@@ -81,9 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
+  const updateUser = (updates: Partial<User>) => {
+    if (!user) return;
+    const updatedUser = { ...user, ...updates };
+    setUser(updatedUser);
+    localStorage.setItem('auth-user', JSON.stringify(updatedUser));
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, token, isLoading, login, setSession, logout, isAuthenticated: !!token }}
+      value={{ user, token, isLoading, login, setSession, logout, updateUser, isAuthenticated: !!token }}
     >
       {children}
     </AuthContext.Provider>

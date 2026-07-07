@@ -19,6 +19,7 @@ export interface NavItem {
 interface DashboardSidebarProps {
   items: NavItem[];
   role: 'worker' | 'recruiter' | 'admin';
+  isOpen?: boolean;
 }
 
 const roleLabels: Record<string, string> = {
@@ -33,18 +34,18 @@ const roleHomeRoutes: Record<string, string> = {
   admin: '/admin/dashboard',
 };
 
-export function DashboardSidebar({ items, role }: DashboardSidebarProps) {
+export function DashboardSidebar({ items, role, isOpen = true }: DashboardSidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
+    <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border bg-card lg:flex transition-all duration-300", isOpen ? "w-64" : "w-0 border-r-0 overflow-hidden opacity-0")}>
       <div className="flex h-16 items-center gap-2 border-b border-border px-5">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <BriefcaseIcon />
           </div>
-          <span className="text-lg font-bold tracking-tight">Hireflow</span>
+          <span className="text-lg font-bold tracking-tight">SCN Jobs</span>
         </Link>
       </div>
 

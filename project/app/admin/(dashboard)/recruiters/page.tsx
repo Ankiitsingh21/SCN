@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { PageHeader } from '@/components/page-header';
@@ -28,7 +29,9 @@ export default function AdminRecruitersPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '', industryIds: [] as number[] });
+  const [editMode, setEditMode] = useState(false);
+  const [selectedRecruiterId, setSelectedRecruiterId] = useState('');
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', industryIds: [] as number[] });
   const recruitersQuery = useQuery({ queryKey: ['admin-recruiters'], queryFn: adminApi.recruiters });
   const industriesQuery = useQuery({ queryKey: ['master', 'industries'], queryFn: () => masterDataApi.raw('industries') });
   const recruiters = useMemo<RecruiterView[]>(() => recruitersQuery.data ?? [], [recruitersQuery.data]);
@@ -39,10 +42,21 @@ export default function AdminRecruitersPage() {
     onSuccess: () => {
       toast.success('Recruiter created successfully');
       setShowCreate(false);
-      setForm({ name: '', email: '', password: '', industryIds: [] });
+      setForm({ name: '', email: '', phone: '', password: '', industryIds: [] });
       queryClient.invalidateQueries({ queryKey: ['admin-recruiters'] });
     },
     onError: (error) => toast.error(getApiErrorMessage(error, 'Could not create recruiter')),
+  });
+
+  const editMutation = useMutation({
+    mutationFn: () => adminApi.updateRecruiter(selectedRecruiterId, form),
+    onSuccess: () => {
+      toast.success('Recruiter updated successfully');
+      setShowCreate(false);
+      setForm({ name: '', email: '', phone: '', password: '', industryIds: [] });
+      queryClient.invalidateQueries({ queryKey: ['admin-recruiters'] });
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error, 'Could not update recruiter')),
   });
 
   const statusMutation = useMutation({
@@ -69,12 +83,25 @@ export default function AdminRecruitersPage() {
     }));
   };
 
+  const handleClose = (open: boolean) => {
+    setShowCreate(open);
+    if (!open) {
+      setForm({ name: '', email: '', phone: '', password: '', industryIds: [] });
+      setEditMode(false);
+      setSelectedRecruiterId('');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Recruiter Management"
         description="Create, manage, and oversee recruiter accounts"
-        action={<Button onClick={() => setShowCreate(true)}><Plus className="mr-2 h-4 w-4" />Add Recruiter</Button>}
+        action={<Button onClick={() => {
+          setEditMode(false);
+          setForm({ name: '', email: '', phone: '', password: '', industryIds: [] });
+          setShowCreate(true);
+        }}><Plus className="mr-2 h-4 w-4" />Add Recruiter</Button>}
       />
 
       <div className="flex max-w-md items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
@@ -93,9 +120,19 @@ export default function AdminRecruitersPage() {
                 <div>
                   <h3 className="font-semibold">{recruiter.name}</h3>
                   <p className="text-sm text-muted-foreground">{recruiter.designation}</p>
-                  <Badge variant="outline" className={cn('mt-1', recruiter.status === 'active' ? 'border-success/20 bg-success/5 text-success' : 'bg-muted text-muted-foreground')}>
-                    {recruiter.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={cn('mt-1', recruiter.status === 'active' ? 'border-success/20 bg-success/5 text-success' : 'bg-muted text-muted-foreground')}>
+                      {recruiter.status}
+                    </Badge>
+                    <Button variant="link" className="text-xs h-6 px-0 mt-1" onClick={() => {
+                      setEditMode(true);
+                      setSelectedRecruiterId(recruiter.id);
+                      setForm({ name: recruiter.name, email: recruiter.email, phone: recruiter.phone || '', password: '', industryIds: recruiter.industries.map((ind: string) => industries.find((i: any) => i.name === ind)?.id).filter(Boolean) as number[] });
+                      setShowCreate(true);
+                    }}>
+                      Edit
+                    </Button>
+                  </div>
                 </div>
               </div>
               <Switch
@@ -121,9 +158,10 @@ export default function AdminRecruitersPage() {
         ))}
       </div>
 
-      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+      <Dialog open={showCreate} onOpenChange={handleClose}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Create New Recruiter</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editMode ? 'Edit Recruiter' : 'Create New Recruiter'}</DialogTitle></DialogHeader>
+          <DialogDescription className="sr-only">Form to {editMode ? 'edit' : 'create'} a recruiter profile</DialogDescription>
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -131,31 +169,47 @@ export default function AdminRecruitersPage() {
                 <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="John Doe" />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
-                <Input value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} type="email" placeholder="john@company.com" />
+                <Label>Email <span className="text-destructive">*</span></Label>
+                <Input value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} type="email" placeholder="john@company.com" required />
               </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label>Temporary Password</Label>
-                <Input value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} type="password" placeholder="Minimum 6 characters" />
+              <div className="space-y-2">
+                <Label>Phone Number</Label>
+                <Input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} type="tel" placeholder="9876543210" />
               </div>
+              {!editMode && (
+                <div className="space-y-2">
+                  <Label>Temporary Password <span className="text-destructive">*</span></Label>
+                  <Input value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} type="password" placeholder="Minimum 6 characters" required />
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Assigned Industries</Label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col gap-2 rounded-md border border-input p-2 h-40 overflow-y-auto">
                 {industries.map((industry) => (
-                  <button key={industry.id} type="button" onClick={() => toggleIndustry(industry.id)}>
-                    <Badge variant={form.industryIds.includes(industry.id) ? 'default' : 'outline'}>
+                  <div key={industry.id} className="flex items-center space-x-2 px-2 py-1">
+                    <input
+                      type="checkbox"
+                      id={`industry-${industry.id}`}
+                      checked={form.industryIds.includes(industry.id)}
+                      onChange={() => toggleIndustry(industry.id)}
+                      className="rounded border-input text-primary"
+                    />
+                    <label htmlFor={`industry-${industry.id}`} className="text-sm cursor-pointer flex-1">
                       {'name' in industry ? industry.name : industry.id}
-                    </Badge>
-                  </button>
+                    </label>
+                  </div>
                 ))}
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Creating...' : 'Create Recruiter'}
+            <Button variant="outline" onClick={() => handleClose(false)}>Cancel</Button>
+            <Button 
+              onClick={() => editMode ? editMutation.mutate() : createMutation.mutate()} 
+              disabled={(editMode ? editMutation.isPending : createMutation.isPending) || !form.email || (!editMode && !form.password)}
+            >
+              {editMode ? (editMutation.isPending ? 'Updating...' : 'Update Recruiter') : (createMutation.isPending ? 'Creating...' : 'Create Recruiter')}
             </Button>
           </DialogFooter>
         </DialogContent>
