@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Mail, Phone } from 'lucide-react';
+import { Mail, Phone, Plus, Search, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,16 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { PageHeader } from '@/components/page-header';
 import { getInitials } from '@/lib/format';
 import { adminApi, masterDataApi, MasterRawItem, RecruiterView } from '@/lib/scn-api';
@@ -31,6 +41,7 @@ export default function AdminRecruitersPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [selectedRecruiterId, setSelectedRecruiterId] = useState('');
+  const [recruiterToDelete, setRecruiterToDelete] = useState<RecruiterView | null>(null);
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', industryIds: [] as number[] });
   const recruitersQuery = useQuery({ queryKey: ['admin-recruiters'], queryFn: adminApi.recruiters });
   const industriesQuery = useQuery({ queryKey: ['master', 'industries'], queryFn: () => masterDataApi.raw('industries') });
@@ -66,6 +77,16 @@ export default function AdminRecruitersPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-recruiters'] });
     },
     onError: (error) => toast.error(getApiErrorMessage(error, 'Could not update status')),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => adminApi.deleteRecruiter(id),
+    onSuccess: () => {
+      toast.success('Recruiter deleted');
+      setRecruiterToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ['admin-recruiters'] });
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error, 'Could not delete recruiter')),
   });
 
   const filtered = useMemo(() => recruiters.filter((recruiter) =>
@@ -104,9 +125,17 @@ export default function AdminRecruitersPage() {
         }}><Plus className="mr-2 h-4 w-4" />Add Recruiter</Button>}
       />
 
-      <div className="flex max-w-md items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search recruiters..." value={search} onChange={(event) => setSearch(event.target.value)} className="border-0 bg-transparent px-0 focus-visible:ring-0" />
+      <div className="flex w-full max-w-xl items-center gap-3 rounded-2xl border border-border bg-card px-4 py-2.5 shadow-soft transition-colors focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/15">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+          <Search className="h-4 w-4" />
+        </div>
+        <Input
+          aria-label="Search recruiters"
+          placeholder="Search by name, email, or company"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="h-10 border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0"
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -124,10 +153,10 @@ export default function AdminRecruitersPage() {
                     <Badge variant="outline" className={cn('mt-1', recruiter.status === 'active' ? 'border-success/20 bg-success/5 text-success' : 'bg-muted text-muted-foreground')}>
                       {recruiter.status}
                     </Badge>
-                    <Button variant="link" className="text-xs h-6 px-0 mt-1" onClick={() => {
+                  <Button variant="link" className="text-xs h-6 px-0 mt-1" onClick={() => {
                       setEditMode(true);
                       setSelectedRecruiterId(recruiter.id);
-                      setForm({ name: recruiter.name, email: recruiter.email, phone: recruiter.phone || '', password: '', industryIds: recruiter.industries.map((ind: string) => industries.find((i: any) => i.name === ind)?.id).filter(Boolean) as number[] });
+                      setForm({ name: recruiter.name, email: recruiter.email, phone: recruiter.phone || '', password: '', industryIds: recruiter.industryIds });
                       setShowCreate(true);
                     }}>
                       Edit
@@ -151,8 +180,21 @@ export default function AdminRecruitersPage() {
             </div>
 
             <div className="mt-4 border-t border-border pt-4">
-              <p className="text-xs text-muted-foreground">Jobs Posted</p>
-              <p className="text-lg font-semibold">{recruiter.jobsPosted}</p>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Jobs Posted</p>
+                  <p className="text-lg font-semibold">{recruiter.jobsPosted}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => setRecruiterToDelete(recruiter)}
+                  aria-label={`Delete ${recruiter.name}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </Card>
         ))}
@@ -207,13 +249,33 @@ export default function AdminRecruitersPage() {
             <Button variant="outline" onClick={() => handleClose(false)}>Cancel</Button>
             <Button 
               onClick={() => editMode ? editMutation.mutate() : createMutation.mutate()} 
-              disabled={(editMode ? editMutation.isPending : createMutation.isPending) || !form.email || (!editMode && !form.password)}
+              disabled={(editMode ? editMutation.isPending : createMutation.isPending) || !form.name || !form.email || form.industryIds.length === 0 || (!editMode && !form.password)}
             >
               {editMode ? (editMutation.isPending ? 'Updating...' : 'Update Recruiter') : (createMutation.isPending ? 'Creating...' : 'Create Recruiter')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!recruiterToDelete} onOpenChange={(open) => !open && setRecruiterToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete recruiter?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes {recruiterToDelete?.name}&apos;s recruiter account. Recruiters with posted jobs should be deactivated instead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => recruiterToDelete && deleteMutation.mutate(recruiterToDelete.id)}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete Recruiter'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

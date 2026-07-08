@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LucideIcon, ChevronLeft, LogOut, User } from 'lucide-react';
+import { LucideIcon, ChevronLeft, LogOut, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/lib/auth-context';
@@ -20,6 +20,7 @@ interface DashboardSidebarProps {
   items: NavItem[];
   role: 'worker' | 'recruiter' | 'admin';
   isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const roleLabels: Record<string, string> = {
@@ -34,19 +35,39 @@ const roleHomeRoutes: Record<string, string> = {
   admin: '/admin/dashboard',
 };
 
-export function DashboardSidebar({ items, role, isOpen = true }: DashboardSidebarProps) {
+export function DashboardSidebar({ items, role, isOpen = true, onClose }: DashboardSidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const closeOnMobile = () => {
+    if (window.innerWidth < 1024) onClose?.();
+  };
 
   return (
-    <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border bg-card lg:flex transition-all duration-300", isOpen ? "w-64" : "w-0 border-r-0 overflow-hidden opacity-0")}>
-      <div className="flex h-16 items-center gap-2 border-b border-border px-5">
+    <aside
+      aria-label={`${roleLabels[role]} navigation`}
+      className={cn(
+        'fixed inset-y-0 left-0 z-50 flex h-screen w-72 shrink-0 flex-col border-r border-border bg-card shadow-xl transition-transform duration-300 ease-out lg:sticky lg:z-30 lg:w-64 lg:shadow-none lg:transition-all',
+        isOpen
+          ? 'translate-x-0 lg:w-64'
+          : '-translate-x-full lg:w-0 lg:translate-x-0 lg:overflow-hidden lg:border-r-0 lg:opacity-0',
+      )}
+    >
+      <div className="flex h-16 items-center justify-between gap-2 border-b border-border px-5">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <BriefcaseIcon />
           </div>
           <span className="text-lg font-bold tracking-tight">SCN Jobs</span>
         </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          onClick={onClose}
+          aria-label="Close sidebar"
+        >
+          <X className="h-5 w-5" />
+        </Button>
       </div>
 
       <div className="px-3 py-4">
@@ -63,6 +84,7 @@ export function DashboardSidebar({ items, role, isOpen = true }: DashboardSideba
             <Link
               key={item.href}
               href={item.href}
+              onClick={closeOnMobile}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 isActive

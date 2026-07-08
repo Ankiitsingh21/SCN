@@ -681,6 +681,7 @@ export const adminApi = {
   async createRecruiter(data: {
     name: string;
     email: string;
+    phone?: string;
     password: string;
     industryIds: number[];
   }) {
@@ -692,6 +693,9 @@ export const adminApi = {
   },
   async updateRecruiter(id: string, data: { name?: string; email?: string; companyName?: string; phone?: string }) {
     return toRecruiter(await apiPatch<BackendRecruiter>(`/admin/recruiters/${id}`, data));
+  },
+  deleteRecruiter(id: string) {
+    return apiDelete<{ deleted: boolean }>(`/admin/recruiters/${id}`);
   },
 };
 

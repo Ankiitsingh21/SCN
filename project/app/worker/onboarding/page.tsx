@@ -138,7 +138,7 @@ export default function WorkerOnboardingPage() {
       <div className="container max-w-3xl">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight">Complete Your Profile</h1>
-          <p className="mt-2 text-muted-foreground">Let's set up your profile so you can start applying to jobs.</p>
+          <p className="mt-2 text-muted-foreground">Let&apos;s set up your profile so you can start applying to jobs.</p>
         </div>
 
         <div className="mb-8 flex overflow-x-auto no-scrollbar justify-center">

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Menu, X, Briefcase, User, ChevronDown } from 'lucide-react';
+import { Briefcase, LogIn, Menu, User, UserPlus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,7 +14,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-context';
 import { getInitials } from '@/lib/format';
 
@@ -65,30 +64,23 @@ export function PublicNavbar() {
               <div className="h-9 w-32" />
             ) : !isAuthenticated ? (
               <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/login">Sign In</Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 rounded-full px-4 text-muted-foreground hover:text-foreground"
+                  asChild
+                >
+                  <Link href="/login">
+                    <LogIn className="h-4 w-4" />
+                    Sign In
+                  </Link>
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="sm">
-                      Get Started
-                      <ChevronDown className="ml-1 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuLabel>Get started</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/worker/register">I&apos;m looking for a job</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/login">I&apos;m hiring</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/login">Admin Portal</Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button size="sm" className="gap-2 rounded-full px-4 shadow-glow" asChild>
+                  <Link href="/worker/register">
+                    <UserPlus className="h-4 w-4" />
+                    Sign Up
+                  </Link>
+                </Button>
               </>
             ) : (
               <>
@@ -149,11 +141,17 @@ export function PublicNavbar() {
                 <div className="h-16" />
               ) : !isAuthenticated ? (
                 <>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/login">Sign In</Link>
+                  <Button variant="outline" size="sm" className="justify-center gap-2 rounded-full" asChild>
+                    <Link href="/login">
+                      <LogIn className="h-4 w-4" />
+                      Sign In
+                    </Link>
                   </Button>
-                  <Button size="sm" asChild>
-                    <Link href="/worker/register">Get Started</Link>
+                  <Button size="sm" className="justify-center gap-2 rounded-full" asChild>
+                    <Link href="/worker/register">
+                      <UserPlus className="h-4 w-4" />
+                      Sign Up
+                    </Link>
                   </Button>
                 </>
               ) : (

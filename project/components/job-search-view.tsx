@@ -184,26 +184,36 @@ export function JobSearchView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
-          <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
+      <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-2.5 shadow-card transition-colors focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/15 sm:flex-row sm:items-center">
+        <div className="flex min-h-12 w-full flex-1 items-center gap-3 rounded-xl px-3 sm:w-auto">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+            <Search className="h-4 w-4" />
+          </div>
           <Input
             type="text"
             placeholder="Job title, skill, or company"
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
-            className="border-0 bg-transparent px-0 focus-visible:ring-0"
+            className="h-11 border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0"
+            aria-label="Job title, skill, or company"
           />
         </div>
-        <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
-          <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" />
+        <div className="hidden h-8 w-px bg-border sm:block" />
+        <div className="flex min-h-12 w-full flex-1 items-center gap-3 rounded-xl border-t border-border px-3 pt-2 sm:w-auto sm:border-t-0 sm:pt-0">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+            <MapPin className="h-4 w-4" />
+          </div>
           <Input
             type="text"
             placeholder="Location"
             value={location}
             onChange={(event) => setLocation(event.target.value)}
-            className="border-0 bg-transparent px-0 focus-visible:ring-0"
+            className="h-11 border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0"
+            aria-label="Location"
           />
+        </div>
+        <div className="w-full sm:w-auto">
+          <Button className="h-12 w-full rounded-xl px-8 sm:w-auto" onClick={() => refetch()}>Search</Button>
         </div>
       </div>
 

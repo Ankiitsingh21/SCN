@@ -104,29 +104,35 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mx-auto mt-10 max-w-4xl"
           >
-            <div className="flex w-full flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-card md:flex-row md:items-center">
-              <div className="flex flex-1 items-center gap-2 px-2">
-                <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="flex w-full flex-col gap-2 rounded-2xl border border-border bg-card/95 p-2.5 shadow-card transition-colors focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/15 md:flex-row md:items-center">
+              <div className="flex min-h-12 flex-1 items-center gap-3 rounded-xl px-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                  <Search className="h-4 w-4" />
+                </div>
                 <Input
                   type="text"
                   placeholder="Job title, skill, or company"
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="border-0 bg-transparent px-0 focus-visible:ring-0"
+                  className="h-11 border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0"
+                  aria-label="Job title, skill, or company"
                 />
               </div>
               <div className="hidden h-8 w-px bg-border md:block" />
-              <div className="flex flex-1 items-center gap-2 px-2">
-                <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <div className="flex min-h-12 flex-1 items-center gap-3 rounded-xl border-t border-border px-3 pt-2 md:border-t-0 md:pt-0">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                  <MapPin className="h-4 w-4" />
+                </div>
                 <Input
                   type="text"
                   placeholder="Location"
                   value={searchLocation}
                   onChange={(e) => setSearchLocation(e.target.value)}
-                  className="border-0 bg-transparent px-0 focus-visible:ring-0"
+                  className="h-11 border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0"
+                  aria-label="Location"
                 />
               </div>
-              <Button size="lg" className="w-full md:w-auto md:px-8" asChild>
+              <Button size="lg" className="h-12 w-full rounded-xl md:w-auto md:px-8" asChild>
                 <Link href={`/jobs?q=${encodeURIComponent(searchKeyword)}&loc=${encodeURIComponent(searchLocation)}`}>
                   Search Jobs
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -417,7 +423,7 @@ export default function LandingPage() {
               Ready to find your next opportunity?
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-primary-foreground/80">
-              Join millions of workers and recruiters on SCN Jobs. It's free to get started.
+              Join millions of workers and recruiters on SCN Jobs. It&apos;s free to get started.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button size="lg" variant="secondary" asChild>

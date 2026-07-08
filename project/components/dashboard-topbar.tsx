@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, X, Bell, LogOut, User } from 'lucide-react';
+import { Bell, LogOut, Menu, PanelLeftClose, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -24,12 +22,11 @@ interface DashboardTopbarProps {
   items: NavItem[];
   role: 'worker' | 'recruiter' | 'admin';
   title: string;
-  onToggleSidebar?: (e?: React.MouseEvent) => void;
+  sidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
 }
 
-export function DashboardTopbar({ items, role, title, onToggleSidebar }: DashboardTopbarProps) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const pathname = usePathname();
+export function DashboardTopbar({ role, title, sidebarOpen, onToggleSidebar }: DashboardTopbarProps) {
   const { user, logout } = useAuth();
   const unreadCount = 0;
 
@@ -42,18 +39,10 @@ export function DashboardTopbar({ items, role, title, onToggleSidebar }: Dashboa
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
-            onClick={() => setMobileOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden lg:flex"
             onClick={onToggleSidebar}
+            aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
           >
-            <Menu className="h-5 w-5" />
+            {sidebarOpen ? <PanelLeftClose className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
           <h1 className="text-lg font-semibold">{title}</h1>
         </div>
@@ -118,44 +107,6 @@ export function DashboardTopbar({ items, role, title, onToggleSidebar }: Dashboa
           </DropdownMenu>
         </div>
       </header>
-
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div className="absolute left-0 top-0 h-full w-72 bg-card shadow-xl">
-            <div className="flex h-16 items-center justify-between border-b border-border px-5">
-              <span className="text-lg font-bold">SCN Jobs</span>
-              <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)}>
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            <nav className="space-y-1 p-3">
-              {items.map((item) => {
-                const isActive =
-                  pathname === item.href || pathname.startsWith(item.href + '/');
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-      )}
     </>
   );
 }

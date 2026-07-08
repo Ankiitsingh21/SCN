@@ -31,6 +31,15 @@ export function DashboardLayout({ children, items, role, title }: DashboardLayou
     }
   }, [isAuthenticated, isLoading, role, router, user]);
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const syncSidebar = () => setSidebarOpen(mediaQuery.matches);
+
+    syncSidebar();
+    mediaQuery.addEventListener('change', syncSidebar);
+    return () => mediaQuery.removeEventListener('change', syncSidebar);
+  }, []);
+
   if (isLoading || !isAuthenticated || !user || user.role !== role) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -41,23 +50,26 @@ export function DashboardLayout({ children, items, role, title }: DashboardLayou
 
   return (
     <div className="flex min-h-screen bg-background">
-      <DashboardSidebar items={items} role={role} isOpen={sidebarOpen} />
+      <DashboardSidebar
+        items={items}
+        role={role}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black/20 lg:hidden" 
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden" 
           onClick={() => setSidebarOpen(false)} 
         />
       )}
-      <div 
-        className="flex flex-1 flex-col overflow-hidden" 
-        onClick={() => {
-          if (sidebarOpen) setSidebarOpen(false);
-        }}
-      >
-        <DashboardTopbar items={items} role={role} title={title} onToggleSidebar={(e) => {
-          e?.stopPropagation();
-          setSidebarOpen(!sidebarOpen);
-        }} />
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <DashboardTopbar
+          items={items}
+          role={role}
+          title={title}
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={() => setSidebarOpen((open) => !open)}
+        />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
